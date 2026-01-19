@@ -1,9 +1,11 @@
 {
     "nitter_instances": [
         "https://nitter.poast.org",
-        "https://nitter.moomoo.me",
-        "https://nitter.cz",
-        "https://nitter.privacydev.net"
+        "https://nitter.privacydev.net",
+        "https://nitter.projectsegfau.lt",
+        "https://nitter.eu",
+        "https://nitter.soopy.moe",
+        "https://nitter.rawbit.ninja"
     ],
     "wechat_webhook_url": "YOUR_WECHAT_WEBHOOK_URL",
     "check_interval": 300,

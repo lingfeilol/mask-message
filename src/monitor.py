@@ -1,7 +1,7 @@
 import time
 import random
 from playwright.sync_api import sync_playwright
-from src.utils import load_config, load_processed_tweets, save_processed_tweets, setup_logger
+from src.utils import load_config, load_processed_tweets, save_processed_tweets, setup_logger, convert_to_beijing_time
 
 logger = setup_logger('TwitterMonitor')
 
@@ -31,14 +31,15 @@ class TwitterMonitor:
                 url = self.get_profile_url(instance)
                 logger.info(f"Trying to fetch tweets from {url}")
                 context = browser.new_context(
-                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                    ignore_https_errors=True
                 )
                 page = context.new_page()
 
                 try:
                     page.goto(url, timeout=30000)
                     # Wait for timeline to load
-                    page.wait_for_selector('.timeline-item', timeout=10000)
+                    page.wait_for_selector('.timeline-item', timeout=30000)
                     
                     # Get timeline items
                     timeline_items = page.query_selector_all('.timeline-item')
@@ -68,7 +69,8 @@ class TwitterMonitor:
                             content_el = item.query_selector('.tweet-content')
                             text = content_el.inner_text() if content_el else ""
                             date_el = item.query_selector('.tweet-date a')
-                            published = date_el.get_attribute('title') if date_el else "Unknown time"
+                            raw_published = date_el.get_attribute('title') if date_el else "Unknown time"
+                            published = convert_to_beijing_time(raw_published)
                             
                             replying_to_el = item.query_selector('.replying-to')
                             is_reply = replying_to_el is not None
@@ -146,13 +148,13 @@ class TwitterMonitor:
                                     if 'detail_page' in locals():
                                         detail_page.close()
                         
-                        new_tweets.append({
-                            'id': tweet_id,
-                            'text': final_text,
-                            'link': full_link,
-                            'published': published
-                        })
-                        self.processed_tweets.add(tweet_id)
+                            new_tweets.append({
+                                'id': tweet_id,
+                                'text': final_text,
+                                'link': full_link,
+                                'published': published
+                            })
+                            self.processed_tweets.add(tweet_id)
                     
                     if new_tweets or self.is_first_run:
                         save_processed_tweets(list(self.processed_tweets))

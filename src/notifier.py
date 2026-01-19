@@ -22,6 +22,11 @@ class Notifier:
 
         etfs = analyze_result.get('etfs', [])
         common_stocks = analyze_result.get('common_stocks', [])
+        summary = analyze_result.get('summary', '')
+        
+        if summary:
+            text_content += f"💡 智能总结：{summary}\n"
+            text_content += "--------------------------------\n"
 
         if not etfs:
             text_content += "智能分析：未发现明显的A股ETF相关性。"

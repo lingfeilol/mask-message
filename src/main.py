@@ -22,7 +22,7 @@ def job(monitor, analyzer, market_data, notifier):
             logger.info(f"Processing new tweet: {tweet['id']}")
             
             # 1. Analyze with LLM
-            keywords = analyzer.analyze_tweet(tweet['text'])
+            keywords, summary = analyzer.analyze_tweet(tweet['text'])
             
             # 2. Search Etfs
             etf_results = []
@@ -77,7 +77,8 @@ def job(monitor, analyzer, market_data, notifier):
             # Wrap etf_results and common_stocks into a result object
             notifier.send_notification(tweet, {
                 'etfs': etf_results,
-                'common_stocks': final_common_stocks
+                'common_stocks': final_common_stocks,
+                'summary': summary
             })
             
     except Exception as e:
