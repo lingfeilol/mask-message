@@ -1,0 +1,12 @@
+{
+  "cache_times": {
+    "etf_list": 86400,
+    "etf_holdings": 86400,
+    "sector_list": 86400,
+    "concept_list": 86400,
+    "sector_stocks": 86400,
+    "concept_stocks": 86400,
+    "stock_hot_rank": 43200
+  },
+  "cache_dir": "data/cache"
+}
