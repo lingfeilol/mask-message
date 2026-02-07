@@ -74,11 +74,19 @@ def process_sectors_and_concepts(tweet_text, sectors, concepts, sector_data, sto
     return result
 
 
-def job(monitor, analyzer, market_data, sector_data, stock_hot, notifier):
+def job(config, analyzer, market_data, sector_data, stock_hot, notifier):
+    accounts = config.get("accounts", ["elonmusk"])
     logger.info("Checking for new tweets...")
     try:
-        new_tweets = monitor.fetch_tweets()
-        if not new_tweets:
+        all_new_tweets = []
+        for account in accounts:
+            monitor = TwitterMonitor(account=account)
+            new_tweets = monitor.fetch_tweets()
+            for t in new_tweets:
+                t.setdefault("author", account)
+            all_new_tweets.extend(new_tweets)
+
+        if not all_new_tweets:
             logger.info("No new tweets found.")
             return
 
@@ -87,8 +95,8 @@ def job(monitor, analyzer, market_data, sector_data, stock_hot, notifier):
         if not etf_list:
             logger.warning("ETF list not available, skipping ETF analysis")
 
-        for tweet in new_tweets:
-            logger.info(f"Processing new tweet: {tweet['id']}")
+        for tweet in all_new_tweets:
+            logger.info(f"Processing new tweet [{tweet.get('author', '?')}] {tweet['id']}")
 
             # 1. Analyze with LLM to get summary and ETF codes
             summary = ""
@@ -210,19 +218,19 @@ def main():
         logger.critical(f"Config load failed: {e}")
         sys.exit(1)
 
-    monitor = TwitterMonitor()
     analyzer = ETFAnalyzer()
     market_data = MarketData()
     sector_data = SectorData()
     stock_hot = StockHot()
-    notifier = Notifier(config.get('wechat_webhook_url'))
+    notifier = Notifier(config)
 
     if args.test_notify:
         logger.info("Sending test notification...")
         notifier.send_notification({
             'text': '这是一条测试推文。Tesla to the moon!',
             'link': 'https://nitter.net/elonmusk/status/123456789',
-            'published': 'Mon, 12 Jan 2026 12:00:00 GMT'
+            'published': 'Mon, 12 Jan 2026 12:00:00 GMT',
+            'author': 'elonmusk'
         }, {
             'etfs': [],
             'common_stocks': [],
@@ -237,17 +245,17 @@ def main():
     # If dry run, we might want to just fetch current RSS and print what we WOULD do
     if args.dry_run:
         logger.info("Dry run mode: Checking once...")
-        job(monitor, analyzer, market_data, sector_data, stock_hot, notifier)
+        job(config, analyzer, market_data, sector_data, stock_hot, notifier)
         return
 
     # Schedule
     interval = config.get('check_interval', 300)
-    schedule.every(interval).seconds.do(job, monitor, analyzer, market_data, sector_data, stock_hot, notifier)
+    schedule.every(interval).seconds.do(job, config, analyzer, market_data, sector_data, stock_hot, notifier)
 
-    logger.info(f"Monitor started. Checking every {interval} seconds.")
+    logger.info(f"Monitor started. Accounts: {config.get('accounts', ['elonmusk'])}. Checking every {interval} seconds.")
 
     # Run once at startup
-    job(monitor, analyzer, market_data, sector_data, stock_hot, notifier)
+    job(config, analyzer, market_data, sector_data, stock_hot, notifier)
 
     while True:
         schedule.run_pending()

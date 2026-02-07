@@ -1,0 +1,35 @@
+# 本地 Nitter 实例，供 mask-message 监控推文使用
+# 启动: cd nitter-local && docker-compose up -d
+# 本机访问: http://localhost:8080/elonmusk
+# mask-message 容器内访问: http://host.docker.internal:8080
+
+services:
+  nitter:
+    # Mac M1/M2 用 latest-arm64；x86 可改为 zedeus/nitter:latest
+    image: zedeus/nitter:latest-arm64
+    container_name: nitter-local
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./nitter.conf:/src/nitter.conf:ro
+      - ./sessions.jsonl:/src/sessions.jsonl:ro
+    depends_on:
+      nitter-redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  nitter-redis:
+    image: redis:6-alpine
+    container_name: nitter-redis
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - nitter-redis-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  nitter-redis-data:

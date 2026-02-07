@@ -1,17 +1,22 @@
 {
-    "nitter_instances": [
-        "https://nitter.poast.org",
-        "https://nitter.privacydev.net",
-        "https://nitter.projectsegfau.lt",
-        "https://nitter.eu",
-        "https://nitter.soopy.moe",
-        "https://nitter.rawbit.ninja"
-    ],
-    "wechat_webhook_url": "YOUR_WECHAT_WEBHOOK_URL",
-    "check_interval": 300,
-    "llm_config": {
-        "api_base": "https://api.deepseek.com/v1",
-        "api_key": "YOUR_API_KEY",
-        "model": "deepseek-chat"
-    }
+  "nitter_instances": [
+    "https://nitter.poast.org",
+    "https://nitter.privacydev.net",
+    "https://nitter.projectsegfau.lt",
+    "https://nitter.eu",
+    "https://nitter.soopy.moe",
+    "https://nitter.rawbit.ninja"
+  ],
+  "accounts": ["elonmusk", "realDonaldTrump"],
+  "wechat_webhook_url": "",
+  "feishu_webhook_url": "",
+  "feishu_keyword": "",
+  "dingtalk_webhook_url": "",
+  "dingtalk_secret": "",
+  "check_interval": 300,
+  "llm_config": {
+    "api_base": "https://api.deepseek.com/v1",
+    "api_key": "YOUR_API_KEY",
+    "model": "deepseek-chat"
+  }
 }

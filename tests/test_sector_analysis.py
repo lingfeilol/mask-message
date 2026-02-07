@@ -115,7 +115,7 @@ def test_sector_analysis():
     print("=" * 60)
 
     config = load_config()
-    notifier = Notifier(config.get('wechat_webhook_url'))
+    notifier = Notifier(config)
 
     # Build result for notifier
     analyze_result = {

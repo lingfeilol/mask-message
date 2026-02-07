@@ -55,23 +55,36 @@ def load_config():
         return json.load(f)
 
 def load_processed_tweets():
+    """
+    Load processed tweet IDs per account.
+    Returns: dict[str, list] e.g. {"elonmusk": ["id1", "id2"], "realDonaldTrump": ["id3"]}
+    Backward compat: if file contains a list, return {"elonmusk": that_list}.
+    """
     if not os.path.exists(PROCESSED_TWEETS_FILE):
-        return []
+        return {}
     with open(PROCESSED_TWEETS_FILE, 'r', encoding='utf-8') as f:
         try:
-            return json.load(f)
+            data = json.load(f)
         except json.JSONDecodeError:
-            return []
+            return {}
+    if isinstance(data, list):
+        return {"elonmusk": data}
+    return data
 
-def save_processed_tweets(tweet_ids):
-    # Ensure unique and sorted
-    unique_ids = sorted(list(set(tweet_ids)))
-    # Keep only last 1000 to prevent infinite growth
-    if len(unique_ids) > 1000:
-        unique_ids = unique_ids[-1000:]
-        
+
+def save_processed_tweets(by_account):
+    """
+    Save processed tweet IDs per account.
+    by_account: dict[str, list] e.g. {"elonmusk": ["id1", "id2"], "realDonaldTrump": ["id3"]}
+    """
+    out = {}
+    for account, ids in by_account.items():
+        unique_ids = sorted(list(set(ids)))
+        if len(unique_ids) > 1000:
+            unique_ids = unique_ids[-1000:]
+        out[account] = unique_ids
     with open(PROCESSED_TWEETS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(unique_ids, f, indent=2)
+        json.dump(out, f, indent=2)
 
 def setup_logger(name):
     logger = logging.getLogger(name)

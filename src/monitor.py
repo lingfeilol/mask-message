@@ -6,17 +6,18 @@ from src.utils import load_config, load_processed_tweets, save_processed_tweets,
 logger = setup_logger('TwitterMonitor')
 
 class TwitterMonitor:
-    def __init__(self):
+    def __init__(self, account="elonmusk"):
+        self.account = account
         self.config = load_config()
         self.nitter_instances = self.config.get('nitter_instances', [])
-        # We need to clean up nitter instances to just be the base URL
         self.nitter_instances = [url.rstrip('/') for url in self.nitter_instances]
-        loaded_ids = load_processed_tweets()
+        by_account = load_processed_tweets()
+        loaded_ids = by_account.get(self.account, [])
         self.processed_tweets = set(loaded_ids)
         self.is_first_run = len(loaded_ids) == 0
 
     def get_profile_url(self, instance):
-        return f"{instance}/elonmusk"
+        return f"{instance}/{self.account}"
 
     def fetch_tweets(self):
         new_tweets = []
@@ -152,12 +153,15 @@ class TwitterMonitor:
                                 'id': tweet_id,
                                 'text': final_text,
                                 'link': full_link,
-                                'published': published
+                                'published': published,
+                                'author': self.account
                             })
                             self.processed_tweets.add(tweet_id)
                     
                     if new_tweets or self.is_first_run:
-                        save_processed_tweets(list(self.processed_tweets))
+                        by_account = load_processed_tweets()
+                        by_account[self.account] = list(self.processed_tweets)
+                        save_processed_tweets(by_account)
                     
                     # If success, break
                     break

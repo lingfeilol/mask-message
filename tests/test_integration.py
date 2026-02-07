@@ -35,7 +35,7 @@ def test_full_pipeline():
     # Initialize components
     analyzer = ETFAnalyzer()
     market_data = MarketData()
-    notifier = Notifier(config.get('wechat_webhook_url'))
+    notifier = Notifier(config)
     print("[2/5] 组件初始化完成 (Analyzer, MarketData, Notifier)")
 
     # Fake tweets for testing
